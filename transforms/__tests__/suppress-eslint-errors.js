@@ -203,8 +203,8 @@ test('supports alternative messages in javascript', () => {
 }
 `;
 
-	expect(modifySource(program, { message: 'Something more informative' }))
-		.resolves.toBe(`export function foo(a, b) {
+	expect(modifySource(program, { message: 'Something more informative' })).resolves
+		.toBe(`export function foo(a, b) {
   // eslint-disable-next-line eqeqeq -- Something more informative
   return a == b;
 }
@@ -220,8 +220,8 @@ test('supports alternative messages in jsx', () => {
   );
 }`;
 
-	expect(modifySource(program, { message: 'Something more informative' }))
-		.resolves.toBe(`export function Component({ a, b }) {
+	expect(modifySource(program, { message: 'Something more informative' })).resolves
+		.toBe(`export function Component({ a, b }) {
   return (
     (<div>
       {/* eslint-disable-next-line eqeqeq -- Something more informative */}
@@ -238,7 +238,8 @@ test('supports rule whitelist in javascript', () => {
 }
 `;
 
-	expect(modifySource(program, { rules: 'no-unreachable' })).resolves.toBe(`export function foo(a, b) {
+	expect(modifySource(program, { rules: 'no-unreachable' })).resolves
+		.toBe(`export function foo(a, b) {
   return a == b;
   // eslint-disable-next-line no-unreachable -- TODO: Fix this the next time the file is edited.
   console.log('unreachable');
@@ -259,7 +260,8 @@ test('supports errors on multiline return statements', () => {
   }
 }`;
 
-	expect(modifySource(program, { rules: 'consistent-return' })).resolves.toBe(`export function fn(a, b) {
+	expect(modifySource(program, { rules: 'consistent-return' })).resolves
+		.toBe(`export function fn(a, b) {
   if (a) {
     return;
   }
@@ -298,8 +300,8 @@ test('comments named export with correct syntax', () => {
 		modifySource(program, {
 			baseConfig,
 		})
-	)
-		.resolves.toBe(`// eslint-disable-next-line import/prefer-default-export -- TODO: Fix this the next time the file is edited.
+	).resolves
+		.toBe(`// eslint-disable-next-line import/prefer-default-export -- TODO: Fix this the next time the file is edited.
 export const Component = (a, b) => {
   return a === b;
 }`);
@@ -444,7 +446,8 @@ test('correctly handles empty blocks with multiple violations in else if conditi
   return null;
 }`;
 
-	expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves.toBe(`export function foo(a, b) {
+	expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves
+		.toBe(`export function foo(a, b) {
   if (a === b) {
 
     // eslint-disable-next-line eqeqeq, no-undef -- TODO: Fix this the next time the file is edited.
@@ -467,7 +470,8 @@ test('correctly modifies empty blocks with violations in else if conditions', ()
   return null;
 }`;
 
-	expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves.toBe(`export function foo(a, b) {
+	expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves
+		.toBe(`export function foo(a, b) {
   if (a === b) {
     // eslint-disable-next-line eqeqeq, no-undef
   } else if (a == c) {
