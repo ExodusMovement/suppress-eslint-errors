@@ -2,30 +2,30 @@ const path = require('path');
 const jscodeshift = require('jscodeshift');
 const codeMod = require('../suppress-eslint-errors');
 
-test('inserts a new comment in javascript', () => {
+test('inserts a new comment in javascript', async () => {
 	const program = `export function foo(a, b) {
   return a == b;
 }
 `;
 
-	expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
+	await expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
   // eslint-disable-next-line eqeqeq -- TODO: Fix this the next time the file is edited.
   return a == b;
 }
 `);
 });
 
-test("doesn't update unnecessarily", () => {
+test("doesn't update unnecessarily", async () => {
 	const program = `export function foo(a, b) {
   // eslint-disable-next-line eqeqeq -- TODO: Fix this the next time the file is edited.
   return a == b;
 }
 `;
 
-	expect(modifySource(program)).resolves.toBe(undefined);
+	await expect(modifySource(program)).resolves.toBe(undefined);
 });
 
-test('inserts a new comment in jsx', () => {
+test('inserts a new comment in jsx', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -34,7 +34,7 @@ test('inserts a new comment in jsx', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
   return (
     (<div>
       {/* eslint-disable-next-line eqeqeq -- TODO: Fix this the next time the file is edited. */}
@@ -44,35 +44,35 @@ test('inserts a new comment in jsx', () => {
 }`);
 });
 
-test('updates an existing comment in javascript', () => {
+test('updates an existing comment in javascript', async () => {
 	const program = `export function foo(a, b) {
   // eslint-disable-next-line eqeqeq
   const bar = a == b;
 }
 `;
 
-	expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
+	await expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
   // eslint-disable-next-line eqeqeq, no-unused-vars
   const bar = a == b;
 }
 `);
 });
 
-test('updates an existing comment with an explanation in javascript', () => {
+test('updates an existing comment with an explanation in javascript', async () => {
 	const program = `export function foo(a, b) {
   // eslint-disable-next-line eqeqeq -- for reasons
   const bar = a == b;
 }
 `;
 
-	expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
+	await expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
   // eslint-disable-next-line eqeqeq, no-unused-vars -- for reasons
   const bar = a == b;
 }
 `);
 });
 
-test('updates an existing comment in jsx', () => {
+test('updates an existing comment in jsx', async () => {
 	const program = `export function Component({ a }) {
   return (
     <div>
@@ -82,7 +82,7 @@ test('updates an existing comment in jsx', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a }) {
   return (
     <div>
       {/* eslint-disable-next-line eqeqeq, no-undef */}
@@ -92,7 +92,7 @@ test('updates an existing comment in jsx', () => {
 }`);
 });
 
-test('updates an existing comment with an explanation in jsx', () => {
+test('updates an existing comment with an explanation in jsx', async () => {
 	const program = `export function Component({ a }) {
   return (
     <div>
@@ -102,7 +102,7 @@ test('updates an existing comment with an explanation in jsx', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a }) {
   return (
     <div>
       {/* eslint-disable-next-line eqeqeq, no-undef -- for reasons */}
@@ -112,7 +112,7 @@ test('updates an existing comment with an explanation in jsx', () => {
 }`);
 });
 
-test('inserts comments above a closing tag', () => {
+test('inserts comments above a closing tag', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -122,7 +122,7 @@ test('inserts comments above a closing tag', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
   return (
     <div>
       <div>
@@ -133,7 +133,7 @@ test('inserts comments above a closing tag', () => {
 }`);
 });
 
-test('updates comments above a closing tag', () => {
+test('updates comments above a closing tag', async () => {
 	const program = `export function Component({ a }) {
   return (
     <div>
@@ -144,7 +144,7 @@ test('updates comments above a closing tag', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a }) {
   return (
     <div>
       <div>
@@ -155,7 +155,7 @@ test('updates comments above a closing tag', () => {
 }`);
 });
 
-test('supports adding comments to JSX attributes', () => {
+test('supports adding comments to JSX attributes', async () => {
 	const program = `export function Component({ a, b }) {
     return (
       <div
@@ -164,7 +164,7 @@ test('supports adding comments to JSX attributes', () => {
     );
   }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
     return (
       <div
         // eslint-disable-next-line eqeqeq -- TODO: Fix this the next time the file is edited.
@@ -174,7 +174,7 @@ test('supports adding comments to JSX attributes', () => {
   }`);
 });
 
-test('supports adding comments to JSX attributes containing markup', () => {
+test('supports adding comments to JSX attributes containing markup', async () => {
 	const program = `export function Component({ a, b }) {
     return (
       <div
@@ -185,7 +185,7 @@ test('supports adding comments to JSX attributes containing markup', () => {
     );
   }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
     return (
       <div
         prop={
@@ -197,13 +197,13 @@ test('supports adding comments to JSX attributes containing markup', () => {
   }`);
 });
 
-test('supports alternative messages in javascript', () => {
+test('supports alternative messages in javascript', async () => {
 	const program = `export function foo(a, b) {
   return a == b;
 }
 `;
 
-	expect(modifySource(program, { message: 'Something more informative' })).resolves
+	await expect(modifySource(program, { message: 'Something more informative' })).resolves
 		.toBe(`export function foo(a, b) {
   // eslint-disable-next-line eqeqeq -- Something more informative
   return a == b;
@@ -211,7 +211,7 @@ test('supports alternative messages in javascript', () => {
 `);
 });
 
-test('supports alternative messages in jsx', () => {
+test('supports alternative messages in jsx', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -220,7 +220,7 @@ test('supports alternative messages in jsx', () => {
   );
 }`;
 
-	expect(modifySource(program, { message: 'Something more informative' })).resolves
+	await expect(modifySource(program, { message: 'Something more informative' })).resolves
 		.toBe(`export function Component({ a, b }) {
   return (
     (<div>
@@ -231,14 +231,14 @@ test('supports alternative messages in jsx', () => {
 }`);
 });
 
-test('supports rule whitelist in javascript', () => {
+test('supports rule whitelist in javascript', async () => {
 	const program = `export function foo(a, b) {
   return a == b;
   console.log('unreachable');
 }
 `;
 
-	expect(modifySource(program, { rules: 'no-unreachable' })).resolves
+	await expect(modifySource(program, { rules: 'no-unreachable' })).resolves
 		.toBe(`export function foo(a, b) {
   return a == b;
   // eslint-disable-next-line no-unreachable -- TODO: Fix this the next time the file is edited.
@@ -247,7 +247,7 @@ test('supports rule whitelist in javascript', () => {
 `);
 });
 
-test('supports errors on multiline return statements', () => {
+test('supports errors on multiline return statements', async () => {
 	const program = `export function fn(a, b) {
   if (a) {
     return;
@@ -260,7 +260,7 @@ test('supports errors on multiline return statements', () => {
   }
 }`;
 
-	expect(modifySource(program, { rules: 'consistent-return' })).resolves
+	await expect(modifySource(program, { rules: 'consistent-return' })).resolves
 		.toBe(`export function fn(a, b) {
   if (a) {
     return;
@@ -275,28 +275,28 @@ test('supports errors on multiline return statements', () => {
 }`);
 });
 
-test('skips eslint warnings', () => {
+test('skips eslint warnings', async () => {
 	const program = `export function fn(a) {
   a()
 }`;
 
-	expect(modifySource(program)).resolves.toBe(undefined);
+	await expect(modifySource(program)).resolves.toBe(undefined);
 });
 
-test('skips files that eslint cannot parse', () => {
+test('skips files that eslint cannot parse', async () => {
 	const program = `not actually javascript`;
 
-	expect(modifySource(program)).resolves.toBe(undefined);
+	await expect(modifySource(program)).resolves.toBe(undefined);
 });
 
-test('comments named export with correct syntax', () => {
+test('comments named export with correct syntax', async () => {
 	const program = `export const Component = (a, b) => {
   return a === b;
 }`;
 
 	const baseConfig = { plugins: ['import'], rules: { 'import/prefer-default-export': 'error' } };
 
-	expect(
+	await expect(
 		modifySource(program, {
 			baseConfig,
 		})
@@ -307,7 +307,7 @@ export const Component = (a, b) => {
 }`);
 });
 
-test('does not split JSX lines containing multiple nodes', () => {
+test('does not split JSX lines containing multiple nodes', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -316,7 +316,7 @@ test('does not split JSX lines containing multiple nodes', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
   return (
     (<div>
       {/* eslint-disable-next-line eqeqeq -- TODO: Fix this the next time the file is edited. */}
@@ -326,7 +326,7 @@ test('does not split JSX lines containing multiple nodes', () => {
 }`);
 });
 
-test('handles trailing text on the previous line', () => {
+test('handles trailing text on the previous line', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -336,7 +336,7 @@ test('handles trailing text on the previous line', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
   return (
     (<div>
       <div />Some text
@@ -347,7 +347,7 @@ test('handles trailing text on the previous line', () => {
 }`);
 });
 
-test('preserves significant trailing whitespace in jsx text nodes', () => {
+test('preserves significant trailing whitespace in jsx text nodes', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -357,7 +357,7 @@ test('preserves significant trailing whitespace in jsx text nodes', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
   return (
     (<div>
       Some text <span>next to a span</span>
@@ -368,7 +368,7 @@ test('preserves significant trailing whitespace in jsx text nodes', () => {
 }`);
 });
 
-test('preserves significant leading whitespace in jsx text nodes', () => {
+test('preserves significant leading whitespace in jsx text nodes', async () => {
 	const program = `export function Component({ a, b }) {
   return (
     <div>
@@ -378,7 +378,7 @@ test('preserves significant leading whitespace in jsx text nodes', () => {
   );
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
+	await expect(modifySource(program)).resolves.toBe(`export function Component({ a, b }) {
   return (
     (<div>
       <span>A span</span> next to some text
@@ -389,7 +389,7 @@ test('preserves significant leading whitespace in jsx text nodes', () => {
 }`);
 });
 
-test('does not split if from preceding else', () => {
+test('does not split if from preceding else', async () => {
 	const program = `export function foo(a, b) {
   if (a === b) {
     return a;
@@ -400,7 +400,7 @@ test('does not split if from preceding else', () => {
   return null;
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
+	await expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
   if (a === b) {
     return a;
     // eslint-disable-next-line eqeqeq -- TODO: Fix this the next time the file is edited.
@@ -412,7 +412,7 @@ test('does not split if from preceding else', () => {
 }`);
 });
 
-test('correctly modifies comments in else if conditions', () => {
+test('correctly modifies comments in else if conditions', async () => {
 	const program = `export function foo(a, b) {
   if (a === b) {
     return a;
@@ -424,7 +424,7 @@ test('correctly modifies comments in else if conditions', () => {
   return null;
 }`;
 
-	expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
+	await expect(modifySource(program)).resolves.toBe(`export function foo(a, b) {
   if (a === b) {
     return a;
     // eslint-disable-next-line eqeqeq, no-undef
@@ -436,7 +436,7 @@ test('correctly modifies comments in else if conditions', () => {
 }`);
 });
 
-test('correctly handles empty blocks with multiple violations in else if conditions', () => {
+test('correctly handles empty blocks with multiple violations in else if conditions', async () => {
 	const program = `export function foo(a, b) {
   if (a === b) {
   } else if (a == c) {
@@ -446,7 +446,7 @@ test('correctly handles empty blocks with multiple violations in else if conditi
   return null;
 }`;
 
-	expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves
+	await expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves
 		.toBe(`export function foo(a, b) {
   if (a === b) {
 
@@ -459,7 +459,7 @@ test('correctly handles empty blocks with multiple violations in else if conditi
 }`);
 });
 
-test('correctly modifies empty blocks with violations in else if conditions', () => {
+test('correctly modifies empty blocks with violations in else if conditions', async () => {
 	const program = `export function foo(a, b) {
   if (a === b) {
     // eslint-disable-next-line eqeqeq
@@ -470,7 +470,7 @@ test('correctly modifies empty blocks with violations in else if conditions', ()
   return null;
 }`;
 
-	expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves
+	await expect(modifySource(program, { rules: 'eqeqeq,no-undef' })).resolves
 		.toBe(`export function foo(a, b) {
   if (a === b) {
     // eslint-disable-next-line eqeqeq, no-undef
