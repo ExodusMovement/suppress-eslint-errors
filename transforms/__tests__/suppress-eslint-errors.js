@@ -482,6 +482,138 @@ test('correctly modifies empty blocks with violations in else if conditions', as
 }`);
 });
 
+describe('inline comments', () => {
+	const options = { inline: true };
+
+	test('inserts a new comment in javascript', async () => {
+		const program = `export function foo(a, b) {
+  return a == b;
+}
+`;
+
+		await expect(modifySource(program, options)).resolves.toBe(`export function foo(a, b) {
+  return a == b;// eslint-disable-line eqeqeq -- TODO: Fix this the next time the file is edited.
+}
+`);
+	});
+
+	test("doesn't update unnecessarily", async () => {
+		const program = `export function foo(a, b) {
+  return a == b;// eslint-disable-line eqeqeq -- TODO: Fix this the next time the file is edited.
+}
+`;
+
+		await expect(modifySource(program, options)).resolves.toBe(undefined);
+	});
+
+	test('updates an existing comment in javascript', async () => {
+		const program = `export function foo(a, b) {
+  // eslint-disable-next-line eqeqeq
+  const bar = a == b;
+}
+`;
+
+		await expect(modifySource(program, options)).resolves.toBe(`export function foo(a, b) {
+  // eslint-disable-next-line eqeqeq, no-unused-vars
+  const bar = a == b;
+}
+`);
+	});
+
+	test('updates an existing inline comment in javascript', async () => {
+		const program = `export function foo(a, b) {
+  const bar = a == b;// eslint-disable-line eqeqeq
+}
+`;
+
+		await expect(modifySource(program, options)).resolves.toBe(`export function foo(a, b) {
+  const bar = a == b;// eslint-disable-line eqeqeq, no-unused-vars
+}
+`);
+	});
+
+	test('updates an existing comment with an explanation in javascript', async () => {
+		const program = `export function foo(a, b) {
+  // eslint-disable-next-line eqeqeq -- for reasons
+  const bar = a == b;
+}
+`;
+
+		await expect(modifySource(program, options)).resolves.toBe(`export function foo(a, b) {
+  // eslint-disable-next-line eqeqeq, no-unused-vars -- for reasons
+  const bar = a == b;
+}
+`);
+	});
+
+	test('updates an existing inline comment with an explanation in javascript', async () => {
+		const program = `export function foo(a, b) {
+  const bar = a == b;// eslint-disable-line eqeqeq -- for reasons
+}
+`;
+
+		await expect(modifySource(program, options)).resolves.toBe(`export function foo(a, b) {
+  const bar = a == b;// eslint-disable-line eqeqeq, no-unused-vars -- for reasons
+}
+`);
+	});
+
+	test('supports alternative messages in javascript', async () => {
+		const program = `export function foo(a, b) {
+  return a == b;
+}
+`;
+
+		await expect(modifySource(program, { ...options, message: 'Something more informative' }))
+			.resolves.toBe(`export function foo(a, b) {
+  return a == b;// eslint-disable-line eqeqeq -- Something more informative
+}
+`);
+	});
+
+	test('supports rule whitelist in javascript', async () => {
+		const program = `export function foo(a, b) {
+  return a == b;
+  console.log('unreachable');
+}
+`;
+
+		await expect(modifySource(program, { ...options, rules: 'no-unreachable' })).resolves
+			.toBe(`export function foo(a, b) {
+  return a == b;
+  console.log('unreachable');// eslint-disable-line no-unreachable -- TODO: Fix this the next time the file is edited.
+}
+`);
+	});
+
+	test('supports errors on multiline return statements', async () => {
+		const program = `export function fn(a, b) {
+  if (a) {
+    return;
+  }
+
+  if (b) {
+    return {
+      b
+    };
+  }
+}`;
+
+		await expect(modifySource(program, { ...options, rules: 'consistent-return' })).resolves
+			.toBe(`export function fn(a, b) {
+  if (a) {
+    return;
+  }
+
+  if (b) {
+    return {
+      b
+    };// eslint-disable-line consistent-return -- TODO: Fix this the next time the file is edited.
+  }
+}`);
+	});
+});
+
 const defaultPath = path.resolve(__dirname, 'examples', 'index.js');
 async function modifySource(source, options) {
 	const transformOptions = { ...options };
