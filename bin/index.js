@@ -36,24 +36,29 @@ try {
 const jscodeshiftPath = require.resolve('jscodeshift/bin/jscodeshift');
 const transformPath = require.resolve('../transforms/suppress-eslint-errors');
 
-async function findGitignoreArguments() {
-	const gitignorePath = path.resolve(process.cwd(), '.gitignore');
+const ignoreFiles = ['.eslintignore', '.gitignore'];
 
-	if (!fs.existsSync(gitignorePath)) {
-		return [];
+async function getIgnoreConfig() {
+	for (const ignoreFile of ignoreFiles) {
+		const filePath = path.resolve(process.cwd(), ignoreFile);
+		if (!fs.existsSync(filePath)) {
+			continue;
+		}
+
+		const allLines = fs.readFileSync(filePath, { encoding: 'utf8' }).split('\n');
+		if (allLines.findIndex((line) => line.startsWith('!')) !== -1) {
+			await logWarning(
+				`your ${ignoreFile} contains exclusions, which jscodeshift does not properly support.`
+			);
+			await logWarning('skipping the ignore-config option.');
+
+			return [];
+		}
+
+		return [`--ignore-config=${ignoreFile}`];
 	}
 
-	const allLines = fs.readFileSync(gitignorePath, { encoding: 'utf8' }).split('\n');
-	if (allLines.findIndex((line) => line.startsWith('!')) !== -1) {
-		await logWarning(
-			'your .gitignore contains exclusions, which jscodeshift does not properly support.'
-		);
-		await logWarning('skipping the ignore-config option.');
-
-		return [];
-	}
-
-	return [`--ignore-config=.gitignore`];
+	return [];
 }
 
 (async function runJsCodeShift() {
@@ -64,7 +69,7 @@ async function findGitignoreArguments() {
 			'--no-babel',
 			'-t',
 			transformPath,
-			...(await findGitignoreArguments()),
+			...(await getIgnoreConfig()),
 			...process.argv.slice(2),
 		],
 		{
