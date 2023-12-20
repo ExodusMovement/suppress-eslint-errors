@@ -141,13 +141,13 @@ function addDisableComment(filePath, api, commentText, targetLine, ruleId, path)
 	}
 
 	if (targetPath.node.type === 'JSXAttribute') {
-		createNormalComment(api, ruleId, commentText, targetPath.value);
+		createNormalComment({ api, ruleId, commentText, targetNode: targetPath.value });
 
 		return;
 	}
 
 	if (targetPath.parent && targetPath.parent.node.type === 'JSXExpressionContainer') {
-		createNormalComment(api, ruleId, commentText, targetPath.value);
+		createNormalComment({ api, ruleId, commentText, targetNode: targetPath.value });
 
 		return;
 	}
@@ -260,10 +260,10 @@ function addDisableComment(filePath, api, commentText, targetLine, ruleId, path)
 		return;
 	}
 
-	createNormalComment(api, ruleId, commentText, targetPath.value);
+	createNormalComment({ api, ruleId, commentText, targetNode: targetPath.value });
 }
 
-function createNormalComment(api, ruleId, commentText, targetNode) {
+function createNormalComment({ api, ruleId, commentText, targetNode }) {
 	if (tryRewriteEslintDisable(targetNode.leadingComments, ruleId)) {
 		return;
 	}
